@@ -18,6 +18,10 @@
 
 #include <Python.h>
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 typedef unsigned char   BYTE; /* 8 bits */
 typedef unsigned short  WORD; /* 16 bits */
 
@@ -164,10 +168,32 @@ static PyMethodDef Skip32Methods[] =
     {NULL, NULL, 0, NULL}
 };
 
-PyMODINIT_FUNC
-initskip32(void)
+#ifdef IS_PY3K
+  #define MOD_ERROR_VAL NULL
+  #define MOD_SUCCESS_VAL(val) val
+  #define MOD_INIT(name) PyMODINIT_FUNC PyInit_##name(void)
+  #define MOD_DEF(ob, name, doc, methods) \
+          static struct PyModuleDef moduledef = { \
+            PyModuleDef_HEAD_INIT, name, doc, -1, methods, }; \
+          ob = PyModule_Create(&moduledef);
+#else
+  #define MOD_ERROR_VAL
+  #define MOD_SUCCESS_VAL(val)
+  #define MOD_INIT(name) void init##name(void)
+  #define MOD_DEF(ob, name, doc, methods) \
+          ob = Py_InitModule3(name, methods, doc);
+#endif
+
+MOD_INIT(skip32)
 {
     assert(sizeof(int) == 4);
-    
-    (void) Py_InitModule("skip32", Skip32Methods);
+    PyObject *m;
+
+    MOD_DEF(m, "skip32", "Skip32 Module.",
+            Skip32Methods)
+
+    if (m == NULL)
+        return MOD_ERROR_VAL;
+
+    return MOD_SUCCESS_VAL(m);
 }

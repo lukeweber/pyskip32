@@ -2,7 +2,7 @@
 
 from distutils.core import setup, Extension
 
-module1 = Extension('skip32', sources = ['skip32.c'])
+module1 = Extension('skip32', sources = ['skip32/skip32.c'])
 
 setup (name = 'skip32',
         version = '1.0',
